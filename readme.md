@@ -97,8 +97,31 @@ nvidia-slot-43 apply --plan plan.json --dry-run
 - `doctor`: preflight checks and dependency validation.
 - `completion`: shell completion support.
 - `config`: view/update runtime behavior.
+- `fix`: direct legacy recovery action entry point (e.g., `fix error43`).
 
 For complete command-level spec and schemas, see [docs/cli-spec.md](docs/cli-spec.md:1).
+
+### Error 43 script execution path
+
+For Windows eGPU cases where Error 43 is diagnosed, the implementation can use the bundled `scripts/nvidia_error43_fixer.ps1` helper.
+
+The bundled script is derived from the public eGPU.io workflow and performs:
+
+- enumeration of NVIDIA display adapter registry entries,
+- detection of adapters reporting error 43,
+- writing `RM1774520=1` (REG_DWORD) into affected adapter keys,
+- adapter restart attempt (PnP/CIM/WMI fallbacks),
+- success/failure reporting.
+
+You can run it directly:
+
+```powershell
+Set-Location .\nvidia-slot-43
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\nvidia_error43_fixer.ps1 -Force
+```
+
+If you want a pure CLI path, plan to wire this as `nvidia-slot-43 fix error43` in the next command implementation, where the script can be invoked as a controlled action with capture, dry-run, and rollback metadata.
 
 ---
 

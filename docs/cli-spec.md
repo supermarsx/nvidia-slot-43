@@ -203,6 +203,18 @@ Rules:
 - `--parallel` only applies to read-only or isolated adapter-safe operations.
 - Writes to state/logs include run ID and action IDs.
 
+#### `fix`
+
+Run a dedicated recovery action for a specific known-fix family.
+
+```bash
+nvidia-slot-43 fix error43 [--target <gpu-id>] [--script <path>] [--dry-run] [--force] [--allow-reboot]
+```
+
+- Windows implementation: patch `RM1774520=1` on affected NVIDIA adapter registry keys then attempt adapter restart/check.
+- Non-Windows: return `NS43_ERR_PLATFORM`.
+- `--dry-run` should enumerate candidate adapters and show intended registry writes without mutating.
+
 #### `verify`
 
 Post-change verification.
@@ -299,6 +311,15 @@ Rules are loaded from embedded registry and optionally JSON/TOML overrides:
 
 All rules must be deterministic, include schema version, and expose:
 - id, title, category, matcher inputs, score weights, recommended actions.
+
+Minimum default action set (starter):
+
+- `ns43.fix.error43.reg_key_patch`
+  - owner: windows
+  - risk: medium
+  - scope: per-adapter
+  - dry_run_supported: true
+  - command: set REG_DWORD `HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\####\\RM1774520 = 1`
 
 ---
 
@@ -403,4 +424,3 @@ All command behavior changes must be versioned and reflected in:
 - this specification,
 - `CHANGELOG.md`,
 - and tests for contract behavior.
-
